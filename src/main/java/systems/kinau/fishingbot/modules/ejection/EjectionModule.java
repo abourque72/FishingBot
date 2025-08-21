@@ -2,6 +2,7 @@ package systems.kinau.fishingbot.modules.ejection;
 
 import systems.kinau.fishingbot.FishingBot;
 import systems.kinau.fishingbot.bot.Inventory;
+import systems.kinau.fishingbot.bot.Enchantment;
 import systems.kinau.fishingbot.bot.Player;
 import systems.kinau.fishingbot.bot.Slot;
 import systems.kinau.fishingbot.modules.Module;
@@ -57,6 +58,23 @@ public class EjectionModule extends Module {
                     }
                     case DROP:
                     default: {
+                        boolean isGood = false;
+                        if (itemName.equals("enchanted_book")) {
+                            List<Enchantment> enchantments = ItemUtils.getEnchantments(updatedItem);
+                            int mendingLevel = enchantments.stream()
+                                    .filter(enchantment -> enchantment.getEnchantmentType().equals("minecraft:mending"))
+                                    .map(Enchantment::getLevel).findAny().orElse(0);
+                            int thornsLevel = enchantments.stream()
+                                    .filter(enchantment -> enchantment.getEnchantmentType().equals("minecraft:thorns"))
+                                    .map(Enchantment::getLevel).findAny().orElse(0);
+                            isGood = (mendingLevel + thornsLevel > 0);
+                        }
+                        if (isGood && ejectionRule.getAllowList().contains("cod")) {
+                            continue;
+                        }
+                        else if (!isGood && ejectionRule.getAllowList().contains("test")) {
+                            continue;
+                        }
                         for (LookEjectFunction lookEjectFunction : lookEjectFunctions) {
                             if (lookEjectFunction.getSlot() == slotId)
                                 return;
